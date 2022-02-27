@@ -1,0 +1,35 @@
+{
+  "canisters": {
+    "refugee_matcher": {
+      "main": "src/refugee_matcher/main.mo",
+      "type": "motoko"
+    },
+    "refugee_matcher_assets": {
+      "dependencies": [
+        "refugee_matcher"
+      ],
+      "frontend": {
+        "entrypoint": "src/refugee_matcher_assets/src/index.html"
+      },
+      "source": [
+        "src/refugee_matcher_assets/assets",
+        "dist/refugee_matcher_assets/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "dfx": "0.8.4",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}
