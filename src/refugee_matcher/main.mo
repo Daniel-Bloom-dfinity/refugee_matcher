@@ -98,9 +98,63 @@ actor class HttpCounter(initial_admin: Principal) {
         Iter.toArray(Iter.map(countries.vals(), Country.toDisk))
     };
 
+    public type Host = {
+        is_active: Bool;
+        referral_code: Text;
+        location: (Nat, Nat); // Country ID, Region ID
+        offer: {
+            #FullHouse;
+            #FullApartment;
+            #RoomInHome;
+            #Bed;
+            #HotelHostel;
+            #Other: Text;
+        };
+        spots_available: Nat16;
+        start_date: Time.Time;
+        duration: {
+            #Days;
+            #Weeks;
+            #Months;
+        };
+        accepts_pets: Bool;
+        accepts_kids: Bool;
+        accepts_men: Bool;
+        accepts_women: Bool;
+        description: Text;
+        contant_info: Text;
+    };
     /// Stub
-    public shared(msg) func upsert_host(host: Host.V1) {
-        hosts.upsert_host(Host.Runtime(countries, host));
+    public shared(msg) func upsert_host(host: Host) {
+        hosts.upsert_host(Host.Runtime(countries, {
+            owner = msg.caller;
+            is_active = true;
+            last_updated = Time.now();
+
+            referral_code = host.referral_code;
+            location = host.location;
+            offer = switch (host.offer) {
+                case(#FullHouse) #FullHouse;
+                case(#FullApartment) #FullApartment;
+                case(#RoomInHome) #RoomInHome;
+                case(#Bed) #Bed;
+                case(#HotelHostel) #HotelHostel;
+                case(#Other(text)) #Other(text);
+            };
+            spots_available = host.spots_available;
+            start_date = host.start_date;
+            duration = switch (host.duration) {
+                case(#Days) #Days;
+                case(#Weeks) #Weeks;
+                case(#Months) #Months;
+            };
+            accepts_pets = host.accepts_pets;
+            accepts_kids = host.accepts_kids;
+            accepts_men = host.accepts_men;
+            accepts_women = host.accepts_women;
+            description = host.description;
+            contant_info = host.contant_info;
+        }));
     };
     /// Stub
 
@@ -109,7 +163,6 @@ actor class HttpCounter(initial_admin: Principal) {
     /// Stub
     public type Refugee = {
         referral_code: Text;
-        last_updated: Time.Time;
         location: (Nat, Nat); // Country ID, Region ID
         start_window: {
             #ASAP;
@@ -130,7 +183,8 @@ actor class HttpCounter(initial_admin: Principal) {
         refugees.upsert_refugee(Refugee.Runtime(countries, {
             owner = msg.caller;
             is_active = true;
-            last_updated = refugee.last_updated;
+            last_updated = Time.now();
+            
             location = refugee.location;
             start_window = switch (refugee.start_window) {
                 case(#ASAP) #ASAP;
