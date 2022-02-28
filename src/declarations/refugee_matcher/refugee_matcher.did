@@ -1,3 +1,28 @@
-service : {
-  greet: (text) -> (text);
-}
+type Region = 
+ record {
+   location: Location;
+   name: text;
+ };
+type Location = 
+ record {
+   micro_lat: int32;
+   micro_long: int32;
+ };
+type HttpCounter = 
+ service {
+   add_country: (Country) -> (nat);
+   add_region: (nat, Region) -> (nat);
+   check_admin: () -> (bool);
+   get_countries: () -> (vec Country) query;
+   greet: (text) -> (text);
+   set_country_name: (nat, text) -> () oneway;
+   set_next_admin: (principal) -> () oneway;
+   switch_admin: () -> () oneway;
+   update_region: (nat, nat, Region) -> () oneway;
+ };
+type Country = 
+ record {
+   name: text;
+   regions: vec Region;
+ };
+service : (principal) -> HttpCounter
