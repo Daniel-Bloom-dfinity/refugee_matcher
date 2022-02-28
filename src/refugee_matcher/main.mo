@@ -46,13 +46,13 @@ actor class HttpCounter(initial_admin: Principal) {
     stable var stable_refugees_v1: [Refugee.V1] = [];
 
     var countries = Utils.load_id<Country.V1, Country.Runtime>(stable_countries_v1, Country.Runtime);
-    var hosts = Host.load_set(stable_hosts_v1, countries);
-    var refugees = Refugee.load_set(stable_refugees_v1, countries);
+    var hosts = Host.Set(stable_hosts_v1, countries);
+    var refugees = Refugee.Set(stable_refugees_v1, countries);
 
     system func preupgrade() {
         stable_countries_v1 := Iter.toArray(Iter.map(countries.vals(), Country.toDisk));
-        stable_hosts_v1 := Iter.toArray(Iter.map(hosts.vals(), Host.toDisk));
-        stable_refugees_v1 := Iter.toArray(Iter.map(refugees.vals(), Refugee.toDisk));
+        stable_hosts_v1 := hosts.store_v1();
+        stable_refugees_v1 := refugees.store_v1();
     };
 
     system func postupgrade() {
@@ -83,6 +83,14 @@ actor class HttpCounter(initial_admin: Principal) {
         assert(is_admin(msg.caller));
         countries.get(country_id).setRegion(region_id, Region.Runtime(region_id, region))
     };
+    public shared(msg) func backup_refugees() : async [Refugee.V1] {
+        assert(is_admin(msg.caller));
+        refugees.store_v1()
+    };
+    public shared(msg) func backup_hosts() : async [Host.V1] {
+        assert(is_admin(msg.caller));
+        hosts.store_v1()
+    };
 
 
     /// User interface section
@@ -91,21 +99,53 @@ actor class HttpCounter(initial_admin: Principal) {
     };
 
     /// Stub
-    public shared(msg) func add_host(host: Host.V1) : async Nat {
-        hosts.add(Host.Runtime(countries, host));
-        hosts.size() - 1
+    public shared(msg) func upsert_host(host: Host.V1) {
+        hosts.upsert_host(Host.Runtime(countries, host));
     };
     /// Stub
-    public query func get_host(host_id: Nat) : async Host.V1 {
-        Host.toDisk(hosts.get(host_id))
+
+
+
+    /// Stub
+    public type Refugee = {
+        referral_code: Text;
+        last_updated: Time.Time;
+        location: (Nat, Nat); // Country ID, Region ID
+        start_window: {
+            #ASAP;
+            #ThisWeek;
+            #NextWeek;
+            #Later;
+        };
+        people: Nat16;
+        includes_pets: Bool;
+        includes_kids: Bool;
+        includes_men: Bool;
+        includes_women: Bool;
+        description: Text;
+        contant_info: Text;
     };
     /// Stub
-    public shared(msg) func add_refuge(refugee: Refugee.V1) : async Nat {
-        refugees.add(Refugee.Runtime(countries, refugee));
-        refugees.size() - 1
+    public shared(msg) func upsert_refuge(refugee: Refugee) {
+        refugees.upsert_refugee(Refugee.Runtime(countries, {
+            owner = msg.caller;
+            is_active = true;
+            last_updated = refugee.last_updated;
+            location = refugee.location;
+            start_window = switch (refugee.start_window) {
+                case(#ASAP) #ASAP;
+                case(#ThisWeek) #ThisWeek;
+                case(#NextWeek) #NextWeek;
+                case(#Later) #Later;
+            };
+            people = refugee.people;
+            includes_pets = refugee.includes_pets;
+            includes_kids = refugee.includes_kids;
+            includes_men = refugee.includes_men;
+            includes_women = refugee.includes_women;
+            description = refugee.description;
+            contant_info = refugee.contant_info;
+        }));
     };
     /// Stub
-    public query func get_refugee(refugee_id: Nat) : async Refugee.V1 {
-        Refugee.toDisk(refugees.get(refugee_id))
-    };
 };

@@ -1,34 +1,15 @@
 import Option "mo:base/Option";
 import Buffer "mo:base/Buffer";
 import Time "mo:base/Time";
+import HashMap "mo:base/HashMap";
+import Principal "mo:base/Principal";
+import Iter "mo:base/Iter";
+
 import Location "location";
 import Region "region";
 import Country "country";
 
 module {
-    type Active = {
-        
-    };
-
-    /// "On Disk" for upgrades
-    /// DO NOT CHANGE
-    type HousingOfferV1 = {
-        #FullHouse;
-        #FullApartment;
-        #RoomInHome;
-        #Bed;
-        #HotelHostel;
-        #Other: Text;
-    };
-
-    /// "On Disk" for upgrades
-    /// DO NOT CHANGE
-    public type DurationV1 = {
-        #Days;
-        #Weeks;
-        #Months;
-    };
-
     /// "On Disk" for upgrades
     /// DO NOT CHANGE
     public type V1 = {
@@ -37,10 +18,21 @@ module {
         referral_code: Text;
         last_updated: Time.Time;
         location: (Nat, Nat); // Country ID, Region ID
-        offer: HousingOfferV1;
+        offer: {
+            #FullHouse;
+            #FullApartment;
+            #RoomInHome;
+            #Bed;
+            #HotelHostel;
+            #Other: Text;
+        };
         spots_available: Nat16;
         start_date: Time.Time;
-        duration: DurationV1;
+        duration: {
+            #Days;
+            #Weeks;
+            #Months;
+        };
         accepts_pets: Bool;
         accepts_kids: Bool;
         accepts_men: Bool;
@@ -71,47 +63,38 @@ module {
         public func setActive(v: Bool) {
             active := v;
         };
-        public func isActive() : Bool = active;
-        public func referralCode() : Text = data.referral_code;
-        public func lastUpdated() : Time.Time = data.last_updated;
-        public func locationID() : (Nat, Nat) = data.location;
 
-        public func offer() : HousingOfferV1 = data.offer;
-        public func spotsAvailable() : Nat16 = data.spots_available;
-        public func startDate() : Time.Time = data.start_date;
-        public func duration() : DurationV1 = data.duration;
-        public func acceptsPets() : Bool = data.accepts_pets;
-        public func acceptsKids() : Bool = data.accepts_kids;
-        public func acceptsMen() : Bool = data.accepts_men;
-        public func acceptsWomen() : Bool = data.accepts_women;
-        public func description() : Text = data.description;
-        public func contantInfo() : Text = data.contant_info;
-    };
-
-
-    public func load_set(stable_data : [V1], d: Buffer.Buffer<Country.Runtime>) : Buffer.Buffer<Runtime> {
-        let runtime_data = Buffer.Buffer<Runtime>(stable_data.size());
-        for (v in stable_data.vals()) {
-            runtime_data.add(Runtime(d, v));
+        public func toDisk() : V1 = {
+            owner = data.owner;
+            is_active = active;
+            referral_code = data.referral_code;
+            last_updated = data.last_updated;
+            location = data.location;
+            offer = data.offer;
+            spots_available = data.spots_available;
+            start_date = data.start_date;
+            duration = data.duration;
+            accepts_pets = data.accepts_pets;
+            accepts_kids = data.accepts_kids;
+            accepts_men = data.accepts_men;
+            accepts_women = data.accepts_women;
+            description = data.description;
+            contant_info = data.contant_info;
         };
-        runtime_data
     };
 
-    public func toDisk(data: Runtime) : V1 = {
-        owner = data.owner();
-        is_active = data.isActive();
-        referral_code = data.referralCode();
-        last_updated = data.lastUpdated();
-        location = data.locationID();
-        offer = data.offer();
-        spots_available = data.spotsAvailable();
-        start_date = data.startDate();
-        duration = data.duration();
-        accepts_pets = data.acceptsPets();
-        accepts_kids = data.acceptsKids();
-        accepts_men = data.acceptsMen();
-        accepts_women = data.acceptsWomen();
-        description = data.description();
-        contant_info = data.contantInfo();
-    };
+    func toDisk((owner, data): (Principal, Runtime)) : V1 = data.toDisk();
+
+    public class Set(stable_data : [V1], countries: Buffer.Buffer<Country.Runtime>) {
+        let map = HashMap.HashMap<Principal, Runtime>(stable_data.size(), Principal.equal, Principal.hash);
+        for (v in stable_data.vals()) {
+            map.put(v.owner, Runtime(countries, v));
+        };
+        public func upsert_host(v: Runtime) {
+            map.put(v.owner(), v);
+        };
+        public func store_v1() : [V1] {
+            Iter.toArray(Iter.map(map.entries(), toDisk));
+        };
+    }
 }
