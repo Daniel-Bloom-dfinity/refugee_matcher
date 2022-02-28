@@ -1,29 +1,46 @@
-import B "mo:base/Buffer";
+import Buffer "mo:base/Buffer";
 import Iter "mo:base/Iter";
-import L "location";
-import R "region";
+import Location "location";
+import Region "region";
 
 module {
-    public class Country(iname: Text, regions: B.Buffer<R.Region>) {
-        var name = iname;
+    /// "On Disk" for upgrades
+    /// DO NOT CHANGE
+    public type V1 = {
+        name: Text;
+        regions: [Region.V1];
+    };
+
+    /// Runtime data for countries
+    public class Runtime(data: V1) {
+        var name = data.name;
+        var regions: Buffer.Buffer<Region.Runtime> = Buffer.Buffer(data.regions.size());
+        for (r in data.regions.vals()) {
+            regions.add(Region.Runtime(r));
+        };
         public func setName(n: Text) {
             name := n;
         };
         public func getName() : Text = name; //{} Syntax Highlighter Hack
 
-        public func addRegion(name: Text, location: L.Location) : Nat {
-            regions.add(R.Region(name, location));
+        public func addRegion(r: Region.Runtime) : Nat {
+            regions.add(r);
             regions.size() - 1
         };
 
-        public func setRegion(id: Nat, name: Text, location: L.Location) {
-            regions.put(id, R.Region(name, location));
+        public func setRegion(id: Nat, r: Region.Runtime) {
+            regions.put(id, r);
         };
-        public func getRegions() : B.Buffer<R.Region> {
+        public func getRegions() : Buffer.Buffer<Region.Runtime> {
             regions
         };
     };
 
+    public func toDisk(data: Runtime) : V1 = {
+        name = data.getName();
+        regions = Iter.toArray(Iter.map(data.getRegions().vals(), Region.toDisk));
+    }
+/*
     func getRegionName(r: R.Region) : Text = r.getName(); //{} SHH
     func getRegionLocation(r: R.Region) : L.Location = r.getLocation(); //{} SHH
     func getRegionMicroLat(r: R.Region) : Int32 = r.getLocation().micro_lat; //{} SHH
@@ -49,4 +66,5 @@ module {
         Iter.toArray(Iter.map(c.getRegions().vals(), getRegionMicroLong)); //{} SHH
     public func getRegionLocations(c: Country) : [L.Location] =
         Iter.toArray(Iter.map(c.getRegions().vals(), getRegionLocation)); //{} SHH
+*/
 }

@@ -1,3 +1,47 @@
-service : {
-  greet: (text) -> (text);
-}
+type Time = int;
+type Region = 
+ record {
+   location: Location;
+   name: text;
+ };
+type Location = 
+ record {
+   micro_lat: int32;
+   micro_long: int32;
+ };
+type HttpCounter = 
+ service {
+   add_country: (Country) -> (nat);
+   add_host: (HostV2) -> (nat);
+   add_region: (nat, Region) -> (nat);
+   check_admin: () -> (bool);
+   get_countries: () -> (vec Country) query;
+   get_host: (nat) -> (HostV2) query;
+   set_country_name: (nat, text) -> () oneway;
+   set_next_admin: (principal) -> () oneway;
+   switch_admin: () -> () oneway;
+   update_region: (nat, nat, Region) -> () oneway;
+ };
+type HostV2 = 
+ record {
+   active: bool;
+   duration: Duration;
+   foo: int32;
+   last_updated: Time;
+   pets: bool;
+   rooms_available: nat16;
+   start_date: Time;
+ };
+type Duration = 
+ variant {
+   Days;
+   Months;
+   Weeks;
+   Years;
+ };
+type Country = 
+ record {
+   name: text;
+   regions: vec Region;
+ };
+service : (principal) -> HttpCounter
