@@ -3,6 +3,7 @@ const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
+const FmtJs = require('@formatjs/ts-transformer');
 
 function initCanisterEnv() {
   let localCanisters, prodCanisters;
@@ -83,7 +84,26 @@ module.exports = {
   // },
   module: {
     rules: [
-      { test: /\.(js|ts)x?$/, loader: "ts-loader" },
+      {
+        test: /\.(js|ts)x?$/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              getCustomTransformers() {
+                return {
+                  before: [
+                    FmtJs.transform({
+                      overrideIdFn: '[sha512:contenthash:base64:6]',
+                    }),
+                  ],
+                }
+              },
+            },
+          },
+        ],
+
+      },
       {
         test: /\.s[ac]ss$/i,
         use: [
