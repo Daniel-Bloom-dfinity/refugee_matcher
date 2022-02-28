@@ -8,7 +8,7 @@ module {
         location: Location.V1;
     };
 
-    public class Runtime(data: V1) {
+    public class Runtime(id: Nat, data: V1) {
         var location = Location.Runtime(data.location);
         public func getName() : Text = data.name;
         public func getLocation() : Location.Runtime = location;
