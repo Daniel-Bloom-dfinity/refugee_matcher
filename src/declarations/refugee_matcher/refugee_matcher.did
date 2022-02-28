@@ -1,47 +1,142 @@
-type Time = int;
-type Region = 
+type V1__4 = 
  record {
-   location: Location;
-   name: text;
+   accepts_kids: bool;
+   accepts_men: bool;
+   accepts_pets: bool;
+   accepts_women: bool;
+   contant_info: text;
+   description: text;
+   duration: variant {
+               Days;
+               Months;
+               Weeks;
+             };
+   is_active: bool;
+   last_updated: Time;
+   location: record {
+               nat;
+               nat;
+             };
+   offer:
+    variant {
+      Bed;
+      FullApartment;
+      FullHouse;
+      HotelHostel;
+      Other: text;
+      RoomInHome;
+    };
+   owner: principal;
+   referral_code: text;
+   spots_available: nat16;
+   start_date: Time;
  };
-type Location = 
+type V1__3 = 
+ record {
+   contant_info: text;
+   description: text;
+   includes_kids: bool;
+   includes_men: bool;
+   includes_pets: bool;
+   includes_women: bool;
+   is_active: bool;
+   last_updated: Time;
+   location: record {
+               nat;
+               nat;
+             };
+   owner: principal;
+   people: nat16;
+   start_window: StartTimeWindowV1;
+ };
+type V1__2 = 
+ record {
+   name: text;
+   regions: vec V1;
+ };
+type V1__1 = 
  record {
    micro_lat: int32;
    micro_long: int32;
  };
+type V1 = 
+ record {
+   location: V1__1;
+   name: text;
+ };
+type Time = int;
+type StartTimeWindowV1 = 
+ variant {
+   ASAP;
+   Later;
+   NextWeek;
+   ThisWeek;
+ };
+type Refugee = 
+ record {
+   contant_info: text;
+   description: text;
+   includes_kids: bool;
+   includes_men: bool;
+   includes_pets: bool;
+   includes_women: bool;
+   location: record {
+               nat;
+               nat;
+             };
+   people: nat16;
+   referral_code: text;
+   start_window: variant {
+                   ASAP;
+                   Later;
+                   NextWeek;
+                   ThisWeek;
+                 };
+ };
 type HttpCounter = 
  service {
-   add_country: (Country) -> (nat);
-   add_host: (HostV2) -> (nat);
-   add_region: (nat, Region) -> (nat);
+   add_country: (V1__2) -> (nat);
+   add_region: (nat, V1) -> (nat);
+   backup_hosts: () -> (vec V1__4);
+   backup_refugees: () -> (vec V1__3);
    check_admin: () -> (bool);
-   get_countries: () -> (vec Country) query;
-   get_host: (nat) -> (HostV2) query;
+   get_countries: () -> (vec V1__2) query;
    set_country_name: (nat, text) -> () oneway;
    set_next_admin: (principal) -> () oneway;
    switch_admin: () -> () oneway;
-   update_region: (nat, nat, Region) -> () oneway;
+   update_region: (nat, nat, V1) -> () oneway;
+   upsert_host: (Host) -> () oneway;
+   upsert_refuge: (Refugee) -> () oneway;
  };
-type HostV2 = 
+type Host = 
  record {
-   active: bool;
-   duration: Duration;
-   foo: int32;
-   last_updated: Time;
-   pets: bool;
-   rooms_available: nat16;
+   accepts_kids: bool;
+   accepts_men: bool;
+   accepts_pets: bool;
+   accepts_women: bool;
+   contant_info: text;
+   description: text;
+   duration: variant {
+               Days;
+               Months;
+               Weeks;
+             };
+   is_active: bool;
+   location: record {
+               nat;
+               nat;
+             };
+   offer:
+    variant {
+      Bed;
+      FullApartment;
+      FullHouse;
+      HotelHostel;
+      Other: text;
+      RoomInHome;
+    };
+   referral_code: text;
+   spots_available: nat16;
    start_date: Time;
- };
-type Duration = 
- variant {
-   Days;
-   Months;
-   Weeks;
-   Years;
- };
-type Country = 
- record {
-   name: text;
-   regions: vec Region;
  };
 service : (principal) -> HttpCounter
