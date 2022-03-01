@@ -16,8 +16,11 @@ import {
   useColorModeValue,
   Stack,
   Heading,
+  Divider,
+  Select,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
+import { FormattedMessage } from 'react-intl';
 
 const Links = [];
 
@@ -40,54 +43,71 @@ export default function Header({ onLangChange }: {onLangChange: (string) => void
 
   return (
     <>
-      <Box px={4}>
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
-          <IconButton
-            size={'md'}
-            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-            aria-label={'Open Menu'}
-            display={{ md: 'none' }}
-            onClick={isOpen ? onClose : onOpen}
-          />
-          <HStack spacing={8} alignItems={'center'}>
-            <Heading as='h1' size='lg'>Site of Refuge</Heading>
-            <HStack
-              as={'nav'}
-              spacing={4}
-              display={{ base: 'none', md: 'flex' }}>
-              {Links.map((link) => (
-                <NavLink key={link}>{link}</NavLink>
-              ))}
+      <Box>
+        <Box mx='24px' my='8px'>
+          <Select placeholder='🌐' onChange={e => onLangChange(e.target.value)} size='sm' width='90px'>
+            <option value='en'>EN</option>
+            <option value='ua'>UA</option>
+          </Select>
+        </Box>
+        <Divider />
+        <Box px={4} mx='24px'>
+          <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+            <IconButton
+              size={'md'}
+              icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+              aria-label={'Open Menu'}
+              display={{ md: 'none' }}
+              onClick={isOpen ? onClose : onOpen}
+            />
+            <HStack spacing={8} alignItems={'center'}>
+              <Heading as='h1' size='lg' id='logo' color='#5B75B4' fontFamily='"Outfit", sans-serif'>Site of Refuge</Heading>
+              <HStack
+                as={'nav'}
+                spacing={4}
+                display={{ base: 'none', md: 'flex' }}>
+                {Links.map((link) => (
+                  <NavLink key={link}>{link}</NavLink>
+                ))}
+              </HStack>
             </HStack>
-          </HStack>
-          <Flex alignItems={'center'}>
-            <Menu>
-              <MenuButton
-                as={Button}
-                rounded={'full'}
-                cursor={'pointer'}
-                minW={0}>
-                  Language
-              </MenuButton>
-              <MenuList>
-                <MenuOptionGroup defaultValue='en' title='Language' type='radio' onChange={onLangChange}>
-                  <MenuItemOption value='en'>English</MenuItemOption>
-                  <MenuItemOption value='ua'>Ukranian</MenuItemOption>
-                </MenuOptionGroup>
-              </MenuList>
-            </Menu>
+            <Flex alignItems={'center'}>
+              <HStack
+                as={'nav'}
+                spacing={4}
+                display={{ base: 'none', md: 'flex' }}>
+                <Link>
+                  <FormattedMessage
+                    description="about link"
+                    defaultMessage="About Us"
+                  />
+                </Link>
+                <Button variant='outline' borderWidth='2' color='blue.700'>
+                  <FormattedMessage
+                    description="log in button"
+                    defaultMessage="Log In"
+                  />
+                </Button>
+                <Button bg='blue.700' color='white' _hover={{bg: 'blue.900'}}>
+                  <FormattedMessage
+                    description="sign up button"
+                    defaultMessage="Sign up"
+                  />
+                </Button>
+              </HStack>
+            </Flex>
           </Flex>
-        </Flex>
 
-        {isOpen ? (
-          <Box pb={4} display={{ md: 'none' }}>
-            <Stack as={'nav'} spacing={4}>
-              {Links.map((link) => (
-                <NavLink key={link}>{link}</NavLink>
-              ))}
-            </Stack>
-          </Box>
-        ) : null}
+          {isOpen ? (
+            <Box pb={4} display={{ md: 'none' }}>
+              <Stack as={'nav'} spacing={4}>
+                {Links.map((link) => (
+                  <NavLink key={link}>{link}</NavLink>
+                ))}
+              </Stack>
+            </Box>
+          ) : null}
+        </Box>
       </Box>
     </>
   );
